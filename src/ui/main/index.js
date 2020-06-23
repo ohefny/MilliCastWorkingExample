@@ -34,14 +34,7 @@ export class Main extends Component {
     const onPublishDataRecieved = async (newConfig) => {
       console.log('publishURL' + newConfig.publisherUrl)
       this.setState({ loading: true })
-      const mediaStream = await mediaDevices.getUserMedia({
-        audio: true,
-        video: {
-          facingMode: {
-            exact: 'user'
-          }
-        }
-      })
+      const mediaStream = await mediaDevices.getUserMedia({audio: true,video: false})
 
       const renderBroadcast = broadcastRenderer(newConfig, mediaStream)
       this.setState({ renderer: renderBroadcast })
@@ -204,7 +197,7 @@ function getPublisherCustomConfig (
     )
     .then((res) => {
       let newConfig = config
-      newConfig['publisherUrl'] = res.data.data.wsUrl    
+      newConfig['publisherUrl'] = res.data.data.wsUrl
       newConfig['publisherStreamId'] = streamName
       newConfig['publisherToken'] = res.data.data.jwt
       console.log(newConfig)

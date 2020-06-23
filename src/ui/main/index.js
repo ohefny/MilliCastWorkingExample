@@ -10,18 +10,17 @@ import { viewerRenderer } from '../viewer'
 import { broadcastRenderer } from '../publish'
 import { stateRenderer } from '../../render/state'
 import * as config from '../../config'
-
 import {
   mediaDevices // eslint-disable-line import/named
 } from 'react-native-webrtc'
 
-import { Text, View, TouchableHighlight, TextInput } from 'react-native'
+import { Text, View, TouchableHighlight, TextInput,Alert } from 'react-native'
 import axios from 'axios'
 
 import { styles } from './styles'
 export class Main extends Component {
   // const renderViewer = viewerRenderer(config)
-  state={ streamAccountId: 'vTdJWm', streamName: 'kbqdqme4' }
+  state={ streamAccountId: config.streamAccountId, streamName: config.viewerStreamId }
   render () {
     const renderer = this.state.renderer
     if (renderer) return renderer()
@@ -59,12 +58,16 @@ export class Main extends Component {
         (newConfig) => {
           console.log('newConfig', newConfig)
           this.setState({ renderer: viewerRenderer(newConfig) })
+        },
+        (error)=>{
+          console.log('showing alert dialog')
+          Alert.alert('Error !!', error)
         }
       )
     }
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Millicast Mobile Demo</Text>
+        <Text style={styles.title}>Nagwa Connect Millicast Mobile Demo</Text>
         <View style={styles.selections}>
           {/* <TouchableHighlight
             disabled = { buttonDisabled }
@@ -106,7 +109,8 @@ function getCustomConfig (
   { directorBaseURL, turnApiUrl },
   streamAccountId,
   streamName,
-  onConfigReturned
+  onConfigReturned,
+  onConfigFailed
 ) {
   console.log(directorBaseURL, turnApiUrl, streamAccountId, streamName)
   return axios
@@ -134,6 +138,9 @@ function getCustomConfig (
       })
     })
     .catch((err) => {
-      console.log(err)
+      console.log(typeof err)
+      let msg = 'Something went wrong please try again'
+      try { msg = err.response.data.data.message } catch (e) {}
+      onConfigFailed(msg)
     })
 }

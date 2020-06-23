@@ -1,10 +1,8 @@
-import { Component } from 'react'
-import * as config from './config'
-import { mainRenderer } from './ui'
+import React, { Component } from 'react'
+import { Main } from './ui'
 
 export class App extends Component {
-  constructor (props) {
-    super(props)
-    this.render = mainRenderer(config)
+  render () {
+    return (<Main/>)
   }
 }

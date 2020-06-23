@@ -4,11 +4,12 @@
 /* eslint-disable comma-spacing */
 /* eslint-disable key-spacing */
 /* eslint-disable no-unused-vars */
-import React from 'react'
+import React,{Component} from 'react'
 
 import { viewerRenderer } from '../viewer'
 import { broadcastRenderer } from '../publish'
 import { stateRenderer } from '../../render/state'
+import * as config from '../../config'
 
 import {
   mediaDevices // eslint-disable-line import/named
@@ -18,19 +19,17 @@ import { Text, View, TouchableHighlight, TextInput } from 'react-native'
 import axios from 'axios'
 
 import { styles } from './styles'
-
-export const mainRenderer = (config) => {
+export class Main extends Component {
   // const renderViewer = viewerRenderer(config)
-
-  const renderMain = (state, setState) => {
-    const renderer = state.get('renderer')
-    if (!state.get('streamAccountId'))setState({ streamAccountId: 'vTdJWm',streamName: 'kbqdqme4' })
+  state={ streamAccountId: 'vTdJWm', streamName: 'kbqdqme4' }
+  render () {
+    const renderer = this.state.renderer
     if (renderer) return renderer()
 
-    const buttonDisabled = state.get('loading')
+    const buttonDisabled = this.state.loading
 
     const publishPressed = async () => {
-      setState({ loading: true })
+      this.setState({ loading: true })
 
       const mediaStream = await mediaDevices.getUserMedia({
         audio: true,
@@ -43,20 +42,26 @@ export const mainRenderer = (config) => {
 
       const renderBroadcast = broadcastRenderer(config, mediaStream)
 
-      setState({ renderer: renderBroadcast })
+      this.setState({ renderer: renderBroadcast })
     }
     const streamAccountIdUpdated = (id) => {
-      setState({ streamAccountId: id })
+      this.setState({ streamAccountId: id })
     }
     const streamNameUpdated = (name) => {
-      setState({ streamName: name })
+      this.setState({ streamName: name })
     }
-    const onViewerClicked = ()=>{
+    const onViewerClicked = () => {
       console.log('onViewerClicked')
-      getCustomConfig(config, state.get('streamAccountId'),state.get('streamName'), (newConfig) => {
-        console.log('newConfig',newConfig)
-        setState({ renderer: viewerRenderer(newConfig) })
-      }) }
+      getCustomConfig(
+        config,
+        this.state.streamAccountId,
+        this.state.streamName,
+        (newConfig) => {
+          console.log('newConfig', newConfig)
+          this.setState({ renderer: viewerRenderer(newConfig) })
+        }
+      )
+    }
     return (
       <View style={styles.container}>
         <Text style={styles.title}>Millicast Mobile Demo</Text>
@@ -70,15 +75,22 @@ export const mainRenderer = (config) => {
           <Text style={{ color: '#000', fontSize: 18 }}>
             Enter Stream Account Id
           </Text>
-          <TextInput onChangeText={streamAccountIdUpdated} value={state.get('streamAccountId')} style={{ backgroundColor: '#fff' }}/>
-          <Text style={{ color: '#000', fontSize: 18 }}>
-            Enter Stream Name
-          </Text>
-          <TextInput onChangeText={streamNameUpdated} value={state.get('streamName')} style={{ backgroundColor: '#fff' }}/>
+          <TextInput
+            onChangeText={streamAccountIdUpdated}
+            value={this.state.streamAccountId}
+            style={{ backgroundColor: '#fff' }}
+          />
+          <Text style={{ color: '#000', fontSize: 18 }}>Enter Stream Name</Text>
+          <TextInput
+            onChangeText={streamNameUpdated}
+            value={this.state.streamName}
+            style={{ backgroundColor: '#fff' }}
+          />
           <TouchableHighlight
             disabled={buttonDisabled}
             style={styles.button}
-            onPress={onViewerClicked}>
+            onPress={onViewerClicked}
+          >
             <Text style={styles.buttonText}>Viewer</Text>
           </TouchableHighlight>
           <Text style={{ color: '#000', fontSize: 18, display: 'none' }}>
@@ -88,39 +100,40 @@ export const mainRenderer = (config) => {
       </View>
     )
   }
-  function getCustomConfig (
-    { directorBaseURL, turnApiUrl },
-    streamAccountId, streamName ,
-    onConfigReturned
-  ) {
-    console.log(directorBaseURL, turnApiUrl, streamAccountId, streamName)
-    return axios
-      .post(directorBaseURL + '/subscribe',
-        {
-          streamAccountId,
-          streamName,
-          unauthorizedSubscribe: true
-        },
-        {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-          }
-        }
-      )
-      .then((res) => {
-        console.log('wsURL',res.data.data.wsUrl + '?token=' + res.data.data.jwt)
-        onConfigReturned({logger:console,turnApiUrl, viewerUrl:res.data.data.wsUrl + '?token=' + res.data.data.jwt,viewerStreamId:streamName})
-      }).catch((err)=>{
-        console.log(err)
-      })
-  }
+}
 
-  return stateRenderer(
-    {
-      loading: false,
-      renderer: null
-    },
-    renderMain
-  )
+function getCustomConfig (
+  { directorBaseURL, turnApiUrl },
+  streamAccountId,
+  streamName,
+  onConfigReturned
+) {
+  console.log(directorBaseURL, turnApiUrl, streamAccountId, streamName)
+  return axios
+    .post(
+      directorBaseURL + '/subscribe',
+      {
+        streamAccountId,
+        streamName,
+        unauthorizedSubscribe: true
+      },
+      {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+    .then((res) => {
+      console.log('wsURL', res.data.data.wsUrl + '?token=' + res.data.data.jwt)
+      onConfigReturned({
+        logger: console,
+        turnApiUrl,
+        viewerUrl: res.data.data.wsUrl + '?token=' + res.data.data.jwt,
+        viewerStreamId: streamName
+      })
+    })
+    .catch((err) => {
+      console.log(err)
+    })
 }

@@ -25,7 +25,7 @@ export const makePublisherClient = (RTCPeerConnection, RTCSessionDescription) =>
         logger.log('ws::onopen')
         const offer = await pc.createOffer({
           offerToReceiveAudio: true,
-          offerToReceiveVideo: true
+          offerToReceiveVideo: false
         })
 
         logger.log('offer:', offer.sdp)
@@ -34,7 +34,7 @@ export const makePublisherClient = (RTCPeerConnection, RTCSessionDescription) =>
         const data = {
           name: streamId,
           sdp: offer.sdp,
-          codec: 'h264'
+          codec: 'opus'
         }
 
         const payload = {

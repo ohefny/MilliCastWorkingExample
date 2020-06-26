@@ -36,7 +36,7 @@ export const makeViewerClient = (RTCPeerConnection, RTCSessionDescription) =>
 
         const offer = await pc.createOffer({
           offerToReceiveAudio: true,
-          offerToReceiveVideo: true
+          offerToReceiveVideo: false
         })
 
         logger.log('offer:', offer)
